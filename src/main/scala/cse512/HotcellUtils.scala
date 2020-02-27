@@ -47,5 +47,66 @@ object HotcellUtils {
     return calendar.get(Calendar.DAY_OF_MONTH)
   }
 
+  def sumOfWeight (x: Int, y: Int, z:Int): Int =
+  {
+    val minX = -74.50/HotcellUtils.coordinateStep
+    val maxX = -73.70/HotcellUtils.coordinateStep
+    val minY = 40.50/HotcellUtils.coordinateStep
+    val maxY = 40.90/HotcellUtils.coordinateStep
+    val minZ = 1
+    val maxZ = 31
+    var ret = 1
+    if (x == minX || x == maxX) {
+      ret = ret * 2
+      //println("x2===")
+    } else {
+      ret = ret * 3
+    }
+    if (y == minY || y == maxY) {
+      ret = ret * 2
+      //println("y2===")
+    } else {
+      ret = ret * 3
+    }
+    if (z == minZ || z == maxZ) {
+      ret = ret * 2
+     // println("z2===")
+    } else {
+      ret = ret * 3
+    }
+    return ret
+  }
+
+  def scaleValue (x: Int, y: Int, z:Int): Double =
+  {
+    val minX = -74.50/HotcellUtils.coordinateStep
+    val maxX = -73.70/HotcellUtils.coordinateStep
+    val minY = 40.50/HotcellUtils.coordinateStep
+    val maxY = 40.90/HotcellUtils.coordinateStep
+    val minZ = 1
+    val maxZ = 31
+    val numCells = (maxX - minX + 1)*(maxY - minY + 1)*(maxZ - minZ + 1)
+    var ret = 1
+    if (x == minX || x == maxX) {
+      ret = ret * 2
+      //println("x2===")
+    } else {
+      ret = ret * 3
+    }
+    if (y == minY || y == maxY) {
+      ret = ret * 2
+      //println("y2===")
+    } else {
+      ret = ret * 3
+    }
+    if (z == minZ || z == maxZ) {
+      ret = ret * 2
+      // println("z2===")
+    } else {
+      ret = ret * 3
+    }
+    return Math.sqrt((numCells * ret - ret * ret) / (numCells - 1))
+  }
+
   // YOU NEED TO CHANGE THIS PART
 }
