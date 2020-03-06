@@ -45,25 +45,22 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
 
   // YOU NEED TO CHANGE THIS PART
   pickupInfo.createOrReplaceTempView("xyz")
-  val xyzCount = spark.sql("select x, y, z, count(*) as cnt from xyz where x >= " + minX + " and x <= " + maxX + " and y >= " + minY + " and y <= " + maxY + " and z >= " + minZ + " and z <= " + maxZ + " group by x, y, z")
+  val xyzCount = spark.sql("select x, y, z, count(*) as cnt from xyz where x >= " + minX + " and x <= " + maxX +
+    " and y >= " + minY + " and y <= " + maxY +
+    " and z >= " + minZ + " and z <= " + maxZ + " group by x, y, z")
   xyzCount.createOrReplaceTempView("xyzattr")
   val stat = spark.sql("select sum(cnt), sum(cnt * cnt) from xyzattr").first()
-  //val cnt : Double = stat.get(2).toString.toDouble
+
   val xmean : Double = stat.get(0).toString.toDouble / numCells
   val xstddev : Double = Math.sqrt((stat.get(1).toString.toDouble / numCells) - xmean * xmean)
-  // val A : Double = xmean * 27
-  // val B : Double = xstddev * Math.sqrt(27)
 
   val joinDF = spark.sql("select xyz1.x as x1, xyz1.y as y1, xyz1.z as z1, xyz2.x as x2, xyz2.y as y2, xyz2.z as z2, xyz2.cnt as cnt from xyzattr as xyz1, xyzattr as xyz2 WHERE abs(xyz1.x - xyz2.x) <= 1 AND abs(xyz1.y - xyz2.y) <= 1 AND abs(xyz1.z - xyz2.z) <= 1")
   joinDF.createOrReplaceTempView("xyzjoin")
-  spark.udf.register("sumOfWeight",(x: Integer, y: Integer, z:Integer)=>(
-  HotcellUtils.sumOfWeight(x, y, z)
-) )
-  spark.udf.register("scaleValue",(x: Integer, y: Integer, z:Integer)=>(
-    HotcellUtils.scaleValue(x, y, z)
-    ) )
-  // val aggDF = spark.sql("select x1, y1, z1, (sum(cnt) - " + A + ") / " + B + " from xyzjoin group by x1, y1, z1 order by sum(cnt) desc")
-  val aggDF = spark.sql("select x1, y1, z1, (sum(cnt) - sumOfWeight(x1, y1, z1) * " + xmean + ") / " + xstddev + " /scaleValue(x1, y1, z1) as gvalue from xyzjoin group by x1, y1, z1 order by gvalue desc")
-  return aggDF // YOU NEED TO CHANGE THIS PART
+  spark.udf.register("sumOfWeight",(x: Integer, y: Integer, z:Integer)=>(HotcellUtils.sumOfWeight(x, y, z)))
+  // spark.udf.register("scaleValue",(x: Integer, y: Integer, z:Integer)=>(HotcellUtils.scaleValue(x, y, z)))
+  // val aggDF = spark.sql("select x1, y1, z1, (sum(cnt) - sumOfWeight(x1, y1, z1) * " + xmean + ") / " + xstddev + " /scaleValue(x1, y1, z1) as gvalue from xyzjoin group by x1, y1, z1 order by gvalue desc")
+  val k = xstddev * Math.sqrt((numCells * 27 - 27 * 27) / (numCells - 1))
+  val aggDF = spark.sql("select x1, y1, z1, (sum(cnt) - sumOfWeight(x1, y1, z1) * " + xmean + ") / " + k + " as gvalue from xyzjoin group by x1, y1, z1 order by gvalue desc")
+  return aggDF
 }
 }

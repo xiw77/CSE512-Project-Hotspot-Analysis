@@ -58,19 +58,16 @@ object HotcellUtils {
     var ret = 1
     if (x == minX || x == maxX) {
       ret = ret * 2
-      //println("x2===")
     } else {
       ret = ret * 3
     }
     if (y == minY || y == maxY) {
       ret = ret * 2
-      //println("y2===")
     } else {
       ret = ret * 3
     }
     if (z == minZ || z == maxZ) {
       ret = ret * 2
-     // println("z2===")
     } else {
       ret = ret * 3
     }
@@ -89,19 +86,16 @@ object HotcellUtils {
     var ret = 1
     if (x == minX || x == maxX) {
       ret = ret * 2
-      //println("x2===")
     } else {
       ret = ret * 3
     }
     if (y == minY || y == maxY) {
       ret = ret * 2
-      //println("y2===")
     } else {
       ret = ret * 3
     }
     if (z == minZ || z == maxZ) {
       ret = ret * 2
-      // println("z2===")
     } else {
       ret = ret * 3
     }
