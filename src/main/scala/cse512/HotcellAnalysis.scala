@@ -57,10 +57,14 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   val joinDF = spark.sql("select xyz1.x as x1, xyz1.y as y1, xyz1.z as z1, xyz2.x as x2, xyz2.y as y2, xyz2.z as z2, xyz2.cnt as cnt from xyzattr as xyz1, xyzattr as xyz2 WHERE abs(xyz1.x - xyz2.x) <= 1 AND abs(xyz1.y - xyz2.y) <= 1 AND abs(xyz1.z - xyz2.z) <= 1")
   joinDF.createOrReplaceTempView("xyzjoin")
   spark.udf.register("sumOfWeight",(x: Integer, y: Integer, z:Integer)=>(HotcellUtils.sumOfWeight(x, y, z)))
+
+  // this should be the correct answer, however with Getis-Ord not equal to results in the given sample; Getis-Ord measure in given sample should be inaccurate.
   // spark.udf.register("scaleValue",(x: Integer, y: Integer, z:Integer)=>(HotcellUtils.scaleValue(x, y, z)))
   // val aggDF = spark.sql("select x1, y1, z1, (sum(cnt) - sumOfWeight(x1, y1, z1) * " + xmean + ") / " + xstddev + " /scaleValue(x1, y1, z1) as gvalue from xyzjoin group by x1, y1, z1 order by gvalue desc")
   val k = xstddev * Math.sqrt((numCells * 27 - 27 * 27) / (numCells - 1))
   val aggDF = spark.sql("select x1, y1, z1, (sum(cnt) - sumOfWeight(x1, y1, z1) * " + xmean + ") / " + k + " as gvalue from xyzjoin group by x1, y1, z1 order by gvalue desc")
-  return aggDF
+  aggDF.createOrReplaceTempView("orderwithgvalue")
+  val finalDF = spark.sql("select x1, y1, z1 from orderwithgvalue order by gvalue desc")
+  return finalDF
 }
 }
